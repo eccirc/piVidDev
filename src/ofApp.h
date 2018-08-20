@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxOpenCv.h"
 #include "ofxThermalPrinter.h"
 #include "RPiVideoGrabber.h"
 
@@ -12,6 +11,7 @@ public:
     void update();
     void draw();
     void exit();
+    void print();
 
     void keyPressed(int key);
 
@@ -31,6 +31,12 @@ public:
     //printer stuff
 
     ofxThermalPrinter myPrinter;
+
+    //use this for counting function for printing
+
+    int timer;
+
+
 
 
 

@@ -75,6 +75,12 @@ void ofApp::update(){
         sGrab2.pop_back();
     }
 
+    timer ++;
+
+    if(timer >= 50){
+        timer = 0;
+    }
+
 
 }
 
@@ -148,3 +154,9 @@ void ofApp::keyPressed(int key){
 }
 
 //--------------------------------------------------------------
+void ofApp::print(){
+    if(timer == 50){
+        myPrinter.print(sGrab[0]);
+    }
+
+}

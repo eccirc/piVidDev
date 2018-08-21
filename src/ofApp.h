@@ -11,20 +11,15 @@ public:
     void update();
     void draw();
     void exit();
-    void print();
+    void printFrame();
 
     void keyPressed(int key);
 
-    //cam stuff - this is for regular (possibly usb on pi - not yet tested as of 10/08/18 comment out for now and use the RPiGrabber instead
-    //ofVideoGrabber myCam;
+    //piCam and Image buffer stuff
 
     RPiVideoGrabber piCam;
 
     deque<ofImage> ImgBuffer;
-
-    deque<ofImage> sGrab;
-
-    deque<ofImage> sGrab2;
 
     ofPixels pixelData;
 
@@ -36,24 +31,11 @@ public:
 
     int timer;
 
-
-
-
+    //set up a buffer to store the frames
 
     int maxBuffersize;
 
     //width & height of the image buffer
     int w,h;
-    //location variables
-    int posX,posY;
-    //size of dots
-    int grainSize;
-    //colour mapping to brightness
-    int colBright;
-
-
-
-
-
 
 };

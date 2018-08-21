@@ -1,8 +1,8 @@
 //originally created as 'vidDev' around 07/2018, now in the process of modifying to run on RPi with native camera support
 //This version, piVidDev started on 10/08/2018 by David Williams, https://github.com/eccirc
-//To do:
-//*Make this work with identical/simialr functionality to the original
-//*create and RPi cross compiler to speed up compiling and debugging - rather than having to do it on the Pi itseld (this will save a lot of time!
+//This branch created 21/08/2018
+//very much reduced the complexity of the original 'vidDev' program (not that it was that complex!)
+//but this version will just hsow four tiles with each at a different point in time - hopefully to display some good slime mould growth comparison
 
 
 #include "ofApp.h"
@@ -26,28 +26,17 @@ void ofApp::setup(){
 //    w = ofGetWidth()/2;
 //    h = ofGetHeight()/2;
 
-    w = 352;
-    h = 288;
-
-    grainSize = 1;
-
-    //camera settins for non-pi cam, comment out for now
-     //myCam.setDesiredFrameRate(5);
-     //myCam.initGrabber(w,h);
-
+    w = ofGetWidth()/2;
+    h = ofGetWidth()/2;
     //Rpi Cam stuff
-    piCam.setDesiredFrameRate(5);
     piCam.initGrabber(w, h);
-
-
-    //set max buffer size to be the same as the width (for now)
-    maxBuffersize = w*2;
+    //set a big max buffer size so we can 'look back in time' by a fair while
+    maxBuffersize = 1000;
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    //as above, use RPi cam and comment out for use with Pi
-    //myCam.update();
+
     piCam.update();
     //save video data into an ofImage deque to store the individual frames
     if(piCam.isFrameNew()){
@@ -57,27 +46,15 @@ void ofApp::update(){
         frameImage.setFromPixels(piCam.getPixels());
         frameImage.mirror(false, true);
         ImgBuffer.push_front(frameImage);
-        //alt image #1
-        ofImage aI1;
-        aI1.grabScreen(0,0, w, h);
-        sGrab.push_front(aI1);
-        //alt image #2
-        ofImage aI2;
-        //change this to include more/less of the image
-        aI2.grabScreen(0, h, w, h);
-        sGrab2.push_front(aI2);
-
     }
     //remove frames once max buffer size has been reached
     if(ImgBuffer.size() > maxBuffersize){
         ImgBuffer.pop_back();
-        sGrab.pop_back();
-        sGrab2.pop_back();
     }
-
+    //timer for the print function
     timer ++;
 
-    if(timer >= 50){
+    if(timer >= maxBuffersize){
         timer = 0;
     }
 
@@ -86,54 +63,16 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    //myCam.draw(0,0);
 
-    //for the binarising bit, set between 0-255, find which one works best for the light levels
-    int threshold = 150;
+    piCam.draw(0,0,w,h);
 
-    for(int x = 0; x < w; x += grainSize*4){
-        for(int y = 0; y < h; y += grainSize*4){
-            ofPushStyle();
-            ofColor colXY = ImgBuffer[0].getColor(x,y);
-            int colBright = colXY.getBrightness();
-            float colMap = ofMap(colBright, 0, 255, 20, 0);
-            int b;
-            //binarise the values to get just black or white
-            if(colBright < threshold){
-                b = 0;
-            }
-            else if(colBright > threshold){
-                b = 255;
-            }
-            //different ways of setting the colour - 'colBright' gives more detailed greyscale, 'b' is binary contrast(black or white)
-            ofSetColor(0);
-            //ofSetCircleResolution(20);
-            //ofSetColor(colBright);
-            //use 'grain size' to draw a uniform grid, or use 'colMap' for brightness to size mapping
-            //ofDrawCircle(x,y, grainSize);
-            OF_RECTMODE_CENTER;
-            ofNoFill();
-            ofDrawRectangle(x,y, colMap, colMap);
-            ofPopStyle();
-
-        }
+    if(ImgBuffer.size() == maxBuffersize){
+        ImgBuffer[250].draw(w,0,w,h);
+        ImgBuffer[500].draw(0,h,w,h);
+        ImgBuffer[750].draw(w,0,w,h);
+        ImgBuffer[999].draw(w,h,w,h);
     }
 
-
-
-    //Now to figure out how to get a slitscan from the image above...
-        for(int i = 0; i < sGrab.size(); i ++){
-            ofPushStyle();
-            ofSetColor(255);
-            //vertical scan
-            sGrab[i].drawSubsection(i,h,grainSize,h,i, 0);
-            //horizontal scan
-            sGrab[i].drawSubsection(0, i + h + h,w,grainSize, 0, i);
-            ofPopStyle();
-        }
-//    for(int i = 0; i < sGrab.size(); i ++){
-//        sGrab[sGrab.size() - 1].draw(0,h,w,h);
-//    }
 
 }
 void ofApp::exit(){
@@ -147,16 +86,16 @@ void ofApp::keyPressed(int key){
 //        for(int i = 0; i < sGrab2.size(); i += 10){
 //        myPrinter.print(sGrab2[i]);
 //        }
-        myPrinter.print(sGrab2[0]);
+        myPrinter.print(ImgBuffer[0]);
 
     }
 
 }
 
 //--------------------------------------------------------------
-void ofApp::print(){
-    if(timer == 50){
-        myPrinter.print(sGrab[0]);
+void ofApp::printFrame(){
+    if(timer == maxBuffersize){
+        myPrinter.print(ImgBuffer[0]);
     }
 
 }
